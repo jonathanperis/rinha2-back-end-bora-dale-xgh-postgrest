@@ -84,6 +84,4 @@ services:
     depends_on:
       - nginx
     entrypoint: ["/bin/sh", "/app/run-rinha-test.sh"]
-    ports:
-      - "5665:5665"
     network_mode: host
