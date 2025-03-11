@@ -1,0 +1,180 @@
+name: Main Release Pipeline
+
+# Grant write permission for repository contents to allow pushing changes.
+permissions:
+  contents: write
+
+on:
+  push:
+    branches:
+      - main
+  
+jobs:
+  setup-build-test:
+    runs-on: ubuntu-latest
+    env:
+      # Set the DATABASE_URL that will be used in both the build step and as a build argument.
+      DATABASE_URL: "postgres://postgres:postgres@localhost:5432/rinha?sslmode=disable"    
+    steps:
+      
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Set up Rust toolchain
+        uses: actions-rs/toolchain@v1
+        with:
+          toolchain: stable
+          override: true
+          components: rustfmt
+          # cache: cargo
+
+      - name: Build and Run Docker Compose for Database
+        run: |
+          docker compose -f ./prod/docker-compose.yml up db -d
+          sleep 10
+
+      # - name: Install SQLx CLI
+      #   run: cargo install sqlx-cli --version 0.7.0               
+
+      # - name: Prepare SQLx offline query cache
+      #   run: cargo sqlx prepare
+
+      - name: Build the application (with DATABASE_URL)
+        run: cargo build --release --manifest-path ./src/WebApi/Cargo.toml
+        env:
+          DATABASE_URL: ${{ env.DATABASE_URL }}
+
+  build-push-image:
+    needs: setup-build-test
+    runs-on: ubuntu-latest
+    env:
+      # Set the DATABASE_URL that will be used in both the build step and as a build argument.
+      DATABASE_URL: "postgres://postgres:postgres@localhost:5432/rinha?sslmode=disable"    
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Set up QEMU
+        uses: docker/setup-qemu-action@v3
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Set up Docker Buildx with host networking
+        uses: docker/setup-buildx-action@v3
+        with:
+          # The driver option below configures Buildx to use the host network.
+          driver-opts: network=host
+
+      - name: Login to Docker Hub
+        uses: docker/login-action@v3
+        with:
+          username: ${{ secrets.DOCKERHUB_USERNAME }}
+          password: ${{ secrets.DOCKERHUB_TOKEN }}
+
+      - name: Build and Run Docker Compose for Database (for image build)
+        run: |
+          docker compose -f ./prod/docker-compose.yml up db -d --force-recreate
+          sleep 10          
+
+      - name: Build and Push Docker Image
+        uses: docker/build-push-action@v5
+        with:
+          context: ./src/WebApi
+          file: ./src/WebApi/Dockerfile
+          build-args: |
+            DATABASE_URL=${{ env.DATABASE_URL }}
+          push: true
+          tags: jonathanperis/rinha2-back-end-bora-dale-xgh-rust:latest
+
+  container-test:
+    needs: build-push-image
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Build and Run Docker Compose for Healthcheck Test
+        run: |
+          docker compose -f ./prod/docker-compose.yml up -d
+          sleep 10
+
+      - name: Test Healthcheck Endpoint
+        run: |
+          for i in {1..20}; do
+            STATUS=$(curl -s -o /dev/null -w "%{http_code}" http://localhost:9999/healthz)
+            if [ "$STATUS" -eq 200 ]; then
+              echo "Healthcheck passed with status $STATUS"
+              exit 0
+            else
+              echo "Healthcheck attempt $i failed with status $STATUS. Retrying..."
+              sleep 2
+            fi
+          done
+          echo "Healthcheck failed after 20 attempts."
+          exit 1
+
+  load-test:
+    runs-on: ubuntu-latest
+    needs: container-test
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Build and Run Docker Compose for Load Test
+        run: |
+          docker compose -f ./prod/docker-compose.yml up k6 --build --force-recreate 
+          sleep 10
+
+      # - name: Listing Files recursively
+      #   run: find . -printf '%y %p\n'
+
+      - name: Upload Stress Test Report Artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: stress-test-report
+          path: ./prod/conf/stress-test/reports/stress-test-report.html
+          # retention-days: 7
+
+      - name: Install Git
+        run: sudo apt-get update && sudo apt-get install -y git
+
+      - name: Configure Git User
+        run: |
+          git config --global user.name "github-actions[bot]"
+          git config --global user.email "github-actions[bot]@users.noreply.github.com"
+
+      - name: Deploy Report to GitHub Pages (Commit to Main Repository)
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          # Calculate timestamp for renaming
+          TIMESTAMP=$(date +%Y%m%d%H%M%S)
+          REPORT_NAME="stress-test-report-${TIMESTAMP}.html"
+          
+          # Clone the main repository into a temporary folder using the GITHUB_TOKEN for authentication
+          git clone https://x-access-token:${GITHUB_TOKEN}@github.com/jonathanperis/rinha2-back-end-bora-dale-xgh-rust.git repo-temp
+          cd repo-temp
+          
+          # Create the destination folder under docs/reports
+          mkdir -p docs/reports
+          
+          # Copy and rename the stress test report into the destination folder
+          cp ../prod/conf/stress-test/reports/stress-test-report.html docs/reports/${REPORT_NAME}
+          
+          # Configure Git user
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          
+          # Stage, commit, and push the changes to the main branch of the repository
+          git add docs/reports/${REPORT_NAME}
+          git commit -m "Deploy stress test report as ${REPORT_NAME} to GitHub Pages (committed into main)"
+          git push origin main

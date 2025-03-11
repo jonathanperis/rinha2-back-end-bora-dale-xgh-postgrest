@@ -1,0 +1,81 @@
+name: 'rinha2-jonathanperis-xgh-bora-dale-rust'
+
+services:
+
+  webapi1-rust: &webapi1
+    image: jonathanperis/rinha2-back-end-bora-dale-xgh-rust:latest
+    hostname: webapi1-rust
+    container_name: webapi-1-rust
+    depends_on:
+      - db
+    restart: always      
+    environment:
+      DATABASE_URL: "postgres://postgres:postgres@db:5432/rinha?sslmode=disable"
+    network_mode: host
+    deploy:
+      resources:
+        limits:
+          cpus: "0.4"
+          memory: "100MB"
+
+  webapi2-rust:
+    <<: *webapi1
+    hostname: webapi2-rust
+    container_name: webapi-2-rust
+
+  db:
+    image: postgres
+    hostname: db
+    container_name: db-rinha
+    restart: always
+    volumes:
+      - ./conf/rinha.dump.sql:/docker-entrypoint-initdb.d/rinha.dump.sql:ro
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+      POSTGRES_DB: rinha
+    network_mode: host
+    deploy:
+      resources:
+        limits:
+          cpus: "0.5"
+          memory: "330MB"
+    command: postgres -c checkpoint_timeout=600 -c max_wal_size=4096 -c synchronous_commit=0 -c fsync=0 -c full_page_writes=0
+
+  nginx:
+    image: nginx
+    hostname: nginx
+    container_name: nginx-rinha
+    volumes:
+      - ./conf/nginx.conf:/etc/nginx/nginx.conf:ro
+    depends_on: 
+      - webapi1-rust
+      - webapi2-rust
+    expose: 
+      - 9999
+    network_mode: host
+    deploy:
+      resources:
+        limits:
+          cpus: "0.2"
+          memory: "20MB"
+
+  k6:
+    image: grafana/k6
+    container_name: k6
+    user: root
+    environment:
+      - K6_WEB_DASHBOARD=true
+      - K6_WEB_DASHBOARD_EXPORT=./reports/stress-test-report.html
+    volumes:
+      - "./conf/stress-test:/app"
+      - "./conf/stress-test/reports:/app/reports"
+    working_dir: /app
+    tty: true
+    stdin_open: true
+    depends_on:
+      - nginx
+    entrypoint: ["/bin/sh", "/app/run-rinha-test.sh"]
+    ports:
+      - "5665:5665"
+    network_mode: host

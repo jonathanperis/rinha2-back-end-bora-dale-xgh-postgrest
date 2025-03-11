@@ -1,0 +1,178 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Rinha de Backend (Rust) - Segunda Edição</title>
+  <!-- Link to custom styles -->
+  <link rel="stylesheet" href="css/style.css">
+  <!-- Tailwind CSS via CDN -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    // Tailwind configuration to extend with GitHub-like colors and fonts.
+    tailwind.config = {
+      theme: {
+        extend: {
+          colors: {
+            github: "#24292e",
+            "github-light": "#fafbfc",
+            accent: "#0366d6",
+          },
+          fontFamily: {
+            sans: ['-apple-system', 'BlinkMacSystemFont', 'Segoe UI', 'Helvetica Neue', 'Arial', 'sans-serif']
+          }
+        }
+      }
+    }
+  </script>
+</head>
+<body class="bg-github-light text-gray-900">
+  <div class="flex flex-col min-h-screen">
+    <header class="bg-github shadow">
+      <div class="container mx-auto px-4 py-4 flex items-center justify-between">
+        <h1 class="text-2xl font-bold text-white">Rinha de Backend (Rust)</h1>
+      </div>
+    </header>
+    <main class="container mx-auto px-4 py-8 flex-grow">
+      <section class="mb-8">
+        <h2 class="text-xl font-semibold mb-4">About the Project</h2>
+        <p class="mb-4">
+          The <a href="https://github.com/jonathanperis/rinha2-back-end-bora-dale-xgh-rust" target="_blank" class="font-mono text-accent hover:underline">rinha2-back-end-bora-dale-xgh-rust</a> project was developed during the Rinha de Backend competition. It showcases a fusion of modern technologies and robust coding.
+        </p>
+        <p class="mb-4">Technologies used include:</p>
+        <ul class="list-disc list-inside">
+          <li><strong>JavaScript:</strong> Dynamic functionalities and server-side operations.</li>
+          <li><strong>PLpgSQL:</strong> Advanced database procedures ensuring optimal performance.</li>
+          <li><strong>Rust:</strong> Performance-critical backend services.</li>
+          <li><strong>Docker:</strong> Containerization for consistent deployments.</li>
+          <li><strong>Shell:</strong> Automation and efficient scripting.</li>
+        </ul>
+      </section>
+      <section class="mb-8">
+        <h2 class="text-xl font-semibold mb-4">Technical Excellence</h2>
+        <p class="mb-4">
+          Built around clean code principles and a modular architecture, the project ensures:
+        </p>
+        <ul class="list-disc list-inside">
+          <li>Scalability and maintainability.</li>
+          <li>Robust error handling and comprehensive logging.</li>
+          <li>Optimized database interactions.</li>
+          <li>Consistent deployments via containerization.</li>
+          <li>Automated routine tasks using shell scripts.</li>
+        </ul>
+      </section>
+      <section class="mb-8">
+        <h2 class="text-xl font-semibold mb-4">User Experience</h2>
+        <p class="mb-4">
+          With a clean, minimalistic design inspired by GitHub, this page offers a straightforward interface to explore the project's technical strengths.
+        </p>
+      </section>
+      <section class="mb-8">
+        <h2 class="text-xl font-semibold mb-4">Competition Rules</h2>
+        <p class="mb-4">
+          The competition requires you to develop an HTTP API with specific endpoints and behaviors. Here are the key rules:
+        </p>
+        <ul class="list-disc list-inside mb-4">
+          <li>
+            <strong>Transações Endpoint:</strong>
+            <ul class="list-disc list-inside ml-6">
+              <li>HTTP Method: <code>POST /clientes/[id]/transacoes</code></li>
+              <li>
+                Request Body must include:
+                <ul class="list-disc list-inside ml-6">
+                  <li><code>valor</code>: a positive integer in centavos (e.g., R$ 10 = 1000 centavos)</li>
+                  <li><code>tipo</code>: either <code>c</code> (credit) or <code>d</code> (debit)</li>
+                  <li><code>descricao</code>: a string between 1 and 10 characters</li>
+                </ul>
+              </li>
+              <li>
+                Validation rules:
+                <ul class="list-disc list-inside ml-6">
+                  <li>All fields are mandatory.</li>
+                  <li>
+                    A debit transaction must not drop the client’s balance below their limit. Transactions causing an inconsistency must return <code>HTTP 422</code>.
+                  </li>
+                  <li>
+                    Requests with a non-existent client ID must return <code>HTTP 404</code>.
+                  </li>
+                </ul>
+              </li>
+              <li>
+                Response:
+                <ul class="list-disc list-inside ml-6">
+                  <li><code>HTTP 200 OK</code> for successful transactions</li>
+                  <li>Response JSON contains the client's <code>limite</code> and updated <code>saldo</code>.</li>
+                </ul>
+              </li>
+            </ul>
+          </li>
+          <li>
+            <strong>Extrato Endpoint:</strong>
+            <ul class="list-disc list-inside ml-6">
+              <li>HTTP Method: <code>GET /clientes/[id]/extrato</code></li>
+              <li>
+                Response:
+                <ul class="list-disc list-inside ml-6">
+                  <li><code>HTTP 200 OK</code> along with a JSON object containing:
+                    <ul class="list-disc list-inside ml-6">
+                      <li><code>saldo</code> object with <code>total</code>, <code>data_extrato</code>, and <code>limite</code></li>
+                      <li><code>ultimas_transacoes</code>: up to the 10 most recent transactions (including <code>valor</code>, <code>tipo</code>, <code>descricao</code>, and <code>realizada_em</code>[...]
+                    </ul>
+                  </li>
+                  <li>Requests with a non-existent client ID must return <code>HTTP 404</code>.</li>
+                </ul>
+              </li>
+            </ul>
+          </li>
+          <li>
+            <strong>Initial Client Data:</strong>
+            <ul class="list-disc list-inside ml-6">
+              <li>Only five clients exist with the following IDs and limits:</li>
+              <li>ID 1: Limit 100,000</li>
+              <li>ID 2: Limit 80,000</li>
+              <li>ID 3: Limit 1,000,000</li>
+              <li>ID 4: Limit 10,000,000</li>
+              <li>ID 5: Limit 500,000</li>
+              <li>Do <em>not</em> register a client with ID 6.</li>
+            </ul>
+          </li>
+          <li>
+            <strong>Additional Requirements:</strong>
+            <ul class="list-disc list-inside ml-6">
+              <li>Containerize your API using a <code>docker-compose.yml</code> file that respects the provided CPU and memory restrictions.</li>
+              <li>Ensure all services are publicly available; otherwise, tests will not be executed.</li>
+              <li>The source repository for your API must be publicly accessible and mentioned in your submission README.</li>
+            </ul>
+          </li>
+        </ul>
+        <p class="italic">
+          For full details, please refer to the official competition README available 
+          <a href="https://github.com/zanfranceschi/rinha-de-backend-2024-q1/blob/main/README.md" target="_blank" class="text-accent hover:underline">here</a>.
+        </p>
+      </section>
+      <!-- New Load Test Reports Section -->
+      <section class="mb-8">
+        <h2 class="text-xl font-semibold mb-4">Load Test Reports</h2>
+        <p class="mb-4">
+          Below is a list of load test reports generated via <a href="https://github.com/jonathanperis/rinha2-back-end-bora-dale-xgh-rust/actions/workflows/main-release-webapi.yml" target="_blank" class="text-accent hover:underline">Github Actions</a>. These reports are hosted publicly via GitHub Pages.
+        </p>
+        <p class="mb-4">
+          Note: Previously, the load script for this project was developed for the Gatling load test framework using Scala. It has now been migrated to Grafana K6 using JavaScript to better integrate with our CI/CD environment since Grafana K6 supports CLI natively.
+        </p>        
+        <ul id="reports-list" class="list-disc pl-5 space-y-2">
+          <li>Loading reports...</li>
+        </ul>
+      </section>
+    </main>
+    <footer class="bg-gray-200 shadow mt-auto">
+      <div class="container mx-auto px-4 py-4 text-center">
+        <p>
+          Made with ❤️ (Only using <a href="https://github.com/copilot" target="_blank" class="text-accent hover:underline">Github Copilot</a> prompts) by Jonathan Peris | <a href="https://jonathanperis.github.io/" target="_blank" class="text-accent hover:underline">Peris Studio</a>
+        </p>
+      </div>
+    </footer>
+  </div>
+  <!-- Link to custom scripts -->
+  <script src="js/script.js"></script>
+</body>
+</html>
