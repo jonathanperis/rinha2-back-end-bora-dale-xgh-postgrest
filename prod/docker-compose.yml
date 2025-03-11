@@ -31,9 +31,7 @@ services:
     image: postgres
     hostname: db
     container_name: db-rinha
-    restart: always
-    depends_on:
-      - postgres-exporter      
+    restart: always  
     volumes:
       - ./conf/db-init:/docker-entrypoint-initdb.d
     environment:
