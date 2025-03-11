@@ -37,8 +37,8 @@ services:
     hostname: db
     container_name: db-rinha
     restart: always
-    # depends_on:
-    #   - postgres-exporter      
+    depends_on:
+      - postgres-exporter      
     volumes:
       - db-rinha-data-postgrest:/var/lib/postgresql/data
       - ./docker-entrypoint-initdb.d:/docker-entrypoint-initdb.d
@@ -81,30 +81,30 @@ services:
     networks:
     - network-bora-dale-xgh
 
-  # postgres-exporter:
-  #   image: prometheuscommunity/postgres-exporter 
-  #   container_name: postgres-exporter-rinha
-  #   ports:
-  #     - 9187:9187
-  #   environment:
-  #     DATA_SOURCE_NAME: "postgresql://postgres:postgres@db:5432/rinha?sslmode=disable"
-  #   networks:
-  #   - network-bora-dale-xgh
+  postgres-exporter:
+    image: prometheuscommunity/postgres-exporter 
+    container_name: postgres-exporter-rinha
+    ports:
+      - 9187:9187
+    environment:
+      DATA_SOURCE_NAME: "postgresql://postgres:postgres@db:5432/rinha?sslmode=disable"
+    networks:
+    - network-bora-dale-xgh
 
-  # grafana:
-  #   image: grafana/grafana
-  #   container_name: grafana-rinha
-  #   environment:
-  #     - GF_AUTH_ANONYMOUS_ORG_ROLE=Admin
-  #     - GF_AUTH_ANONYMOUS_ENABLED=true
-  #     - GF_AUTH_BASIC_ENABLED=false
-  #   ports:
-  #     - "3000:3000"
-  #   volumes:
-  #     - "./grafana/provisioning/:/etc/grafana/provisioning/"
-  #     - "./grafana/dashboards/:/var/lib/grafana/dashboards/"
-  #   networks:
-  #   - network-bora-dale-xgh
+  grafana:
+    image: grafana/grafana
+    container_name: grafana-rinha
+    environment:
+      - GF_AUTH_ANONYMOUS_ORG_ROLE=Admin
+      - GF_AUTH_ANONYMOUS_ENABLED=true
+      - GF_AUTH_BASIC_ENABLED=false
+    ports:
+      - "3000:3000"
+    volumes:
+      - "./grafana/provisioning/:/etc/grafana/provisioning/"
+      - "./grafana/dashboards/:/var/lib/grafana/dashboards/"
+    networks:
+    - network-bora-dale-xgh
 
   # influxdb:
   #   image: influxdb:2.0-alpine

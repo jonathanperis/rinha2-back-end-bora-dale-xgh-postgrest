@@ -11,9 +11,32 @@ RETURNS TABLE (
   transacoes jsonb
 ) AS $$
 BEGIN
-  RETURN QUERY
-    SELECT r.total, r.limite, r.data_extrato, r.transacoes
-    FROM public.GetSaldoClienteById(p_cliente_id) AS r;
+  IF EXISTS (SELECT 1 FROM public."Clientes" WHERE "Id" = p_cliente_id) THEN
+    RETURN QUERY
+      SELECT 
+        c."SaldoInicial" AS total,
+        c."Limite" AS limite,
+        NOW()::timestamp AS data_extrato,
+        COALESCE((
+            SELECT jsonb_agg(t)
+            FROM (
+                SELECT "Valor", "Tipo", "Descricao", "RealizadoEm"
+                FROM public."Transacoes"
+                WHERE "ClienteId" = p_cliente_id
+                ORDER BY "Id" DESC
+                LIMIT 10
+            ) t
+        ), '[]'::jsonb) AS transacoes
+      FROM public."Clientes" c
+      WHERE c."Id" = p_cliente_id;
+  ELSE
+    RETURN QUERY
+      SELECT 
+        0 AS total,
+        0 AS limite,
+        NOW()::timestamp AS data_extrato,
+        '[]'::jsonb AS transacoes;
+  END IF;
 END;
 $$ LANGUAGE plpgsql STABLE;
 
@@ -55,11 +78,11 @@ BEGIN
   -- Retrieve the client's limit.
   SELECT "Limite" INTO limite FROM public."Clientes" WHERE "Id" = p_cliente_id;
   
-  -- Return a JSON object that mimics the original response DTO.
+  -- Return a JSON object with lowercase keys that match your load test expectation.
   RETURN jsonb_build_object(
-    'Id', p_cliente_id,
-    'Limite', limite,
-    'Saldo', updated_saldo
+    'id', p_cliente_id,
+    'limite', limite,
+    'saldo', updated_saldo
   );
 END;
 $$ LANGUAGE plpgsql VOLATILE;
