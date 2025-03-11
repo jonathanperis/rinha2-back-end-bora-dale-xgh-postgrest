@@ -6,43 +6,7 @@ on:
       - main
 
 jobs:
-  setup-build-test:
-    runs-on: ubuntu-latest
-
-    env:
-      # Set a DATABASE_URL for sqlx preparation.
-      DATABASE_URL: "postgres://postgres:postgres@localhost:5432/rinha?sslmode=disable"
-
-    steps:
-      - name: Checkout Repository
-        uses: actions/checkout@v4
-        with:
-            fetch-depth: 0
-
-      - name: Set up Rust toolchain
-        uses: actions-rs/toolchain@v1
-        with:
-          toolchain: stable
-          override: true
-          components: rustfmt
-          # cache: cargo
-
-      - name: Build and Run Docker Compose for Compiled Query Cache Preparation
-        run: |
-          docker compose -f ./prod/docker-compose.yml up db -d
-          sleep 10
-  
-        # - name: Install SQLx CLI
-        #   run: cargo install sqlx-cli --version 0.7.0               
-  
-        # - name: Prepare SQLx offline query cache
-        #   run: cargo sqlx prepare
-
-      - name: Build the application
-        run: cargo build --release --manifest-path ./src/WebApi/Cargo.toml
-
   container-test:
-    needs: setup-build-test
     runs-on: ubuntu-latest
     steps:
       - name: Checkout Repository
