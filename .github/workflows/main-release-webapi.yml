@@ -20,8 +20,8 @@ jobs:
 
       - name: Build and Run Docker Compose for Healthcheck Test
         run: |
-          docker compose -f ./prod/docker-compose.yml up nginx
-          sleep 10
+          docker compose -f ./prod/docker-compose.yml up nginx -d
+          sleep 15
 
       - name: Test Healthcheck Endpoint
         run: |
