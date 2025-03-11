@@ -60,9 +60,8 @@ services:
     depends_on: 
       - webapi1-postgrest
       - webapi2-postgrest
-    expose: 
-      - 9999
-    network_mode: host
+    ports:
+      - "9999:9999"
     deploy:
       resources:
         limits:
