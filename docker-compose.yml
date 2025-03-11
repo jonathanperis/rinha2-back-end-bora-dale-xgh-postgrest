@@ -106,52 +106,52 @@ services:
     networks:
     - network-bora-dale-xgh
 
-  # influxdb:
-  #   image: influxdb:2.0-alpine
-  #   hostname: influxdb
-  #   container_name: influxdb-rinha
-  #   ports:
-  #     - "8086:8086"
-  #   volumes:
-  #     - influxdb-rinha-data:/var/lib/influxdb2
-  #   environment:
-  #     - DOCKER_INFLUXDB_INIT_MODE=setup
-  #     - DOCKER_INFLUXDB_INIT_USERNAME=admin
-  #     - DOCKER_INFLUXDB_INIT_PASSWORD=VG3AfE!pz8x7
-  #     - DOCKER_INFLUXDB_INIT_ORG=rinha
-  #     - DOCKER_INFLUXDB_INIT_BUCKET=demo
-  #     - DOCKER_INFLUXDB_INIT_ADMIN_TOKEN=EEKpryGZk8pVDXmIuy484BKUxM5jOEDv7YNoeNZUbsNbpbPbP6kK_qY9Zsyw7zNnlZ7pHG16FYzNaqwLMBUz8g==
-  #   networks:
-  #     - network-bora-dale-xgh
+  influxdb:
+    image: influxdb:2.0-alpine
+    hostname: influxdb
+    container_name: influxdb-rinha
+    ports:
+      - "8086:8086"
+    volumes:
+      - influxdb-rinha-data:/var/lib/influxdb2
+    environment:
+      - DOCKER_INFLUXDB_INIT_MODE=setup
+      - DOCKER_INFLUXDB_INIT_USERNAME=admin
+      - DOCKER_INFLUXDB_INIT_PASSWORD=VG3AfE!pz8x7
+      - DOCKER_INFLUXDB_INIT_ORG=rinha
+      - DOCKER_INFLUXDB_INIT_BUCKET=demo
+      - DOCKER_INFLUXDB_INIT_ADMIN_TOKEN=EEKpryGZk8pVDXmIuy484BKUxM5jOEDv7YNoeNZUbsNbpbPbP6kK_qY9Zsyw7zNnlZ7pHG16FYzNaqwLMBUz8g==
+    networks:
+      - network-bora-dale-xgh
 
-  # k6:
-  #   # image: grafana/k6
-  #   build:
-  #     context: ./test/
-  #     dockerfile: ./stress-test/Dockerfile
-  #   container_name: k6
-  #   environment:
-  #     - BASE_URL=http://nginx:9999
-  #     - K6_WEB_DASHBOARD=true
-  #     - K6_INFLUXDB_ADDR=http://influxdb:8086
-  #     - K6_INFLUXDB_ORGANIZATION=rinha
-  #     - K6_INFLUXDB_BUCKET=demo
-  #     - K6_INFLUXDB_INSECURE=true
-  #     - K6_INFLUXDB_TOKEN=EEKpryGZk8pVDXmIuy484BKUxM5jOEDv7YNoeNZUbsNbpbPbP6kK_qY9Zsyw7zNnlZ7pHG16FYzNaqwLMBUz8g==      
-  #   volumes:
-  #     - "./test/stress-test:/app"
-  #   working_dir: /app
-  #   tty: true
-  #   stdin_open: true
-  #   depends_on:
-  #     - nginx
-  #     - grafana 
-  #     - influxdb      
-  #   entrypoint: ["/bin/sh", "/app/run-rinha-test.sh"]
-  #   ports:
-  #     - "5665:5665"
-  #   networks:
-  #     - network-bora-dale-xgh
+  k6:
+    # image: grafana/k6
+    build:
+      context: ./test/
+      dockerfile: ./stress-test/Dockerfile
+    container_name: k6
+    environment:
+      - BASE_URL=http://nginx:9999
+      - K6_WEB_DASHBOARD=true
+      - K6_INFLUXDB_ADDR=http://influxdb:8086
+      - K6_INFLUXDB_ORGANIZATION=rinha
+      - K6_INFLUXDB_BUCKET=demo
+      - K6_INFLUXDB_INSECURE=true
+      - K6_INFLUXDB_TOKEN=EEKpryGZk8pVDXmIuy484BKUxM5jOEDv7YNoeNZUbsNbpbPbP6kK_qY9Zsyw7zNnlZ7pHG16FYzNaqwLMBUz8g==      
+    volumes:
+      - "./test/stress-test:/app"
+    working_dir: /app
+    tty: true
+    stdin_open: true
+    depends_on:
+      - nginx
+      - grafana 
+      - influxdb      
+    entrypoint: ["/bin/sh", "/app/run-rinha-test.sh"]
+    ports:
+      - "5665:5665"
+    networks:
+      - network-bora-dale-xgh
 
   # pgadmin:
   #   image: dpage/pgadmin4

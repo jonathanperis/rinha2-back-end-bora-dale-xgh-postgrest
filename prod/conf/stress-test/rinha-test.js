@@ -77,13 +77,14 @@ export const options = {
 
 export function debitos() {
   const payload = JSON.stringify({
+    cliente_id: randomClienteId(),
     valor: randomValorTransacao(),
     tipo: 'd',
     descricao: randomDescricao(),
   });
   
   const res = http.post(
-    `${baseUrl}/clientes/${randomClienteId()}/transacoes`,
+    `${baseUrl}/clientes/transacoes`,
     payload,
     { headers: { 'Content-Type': 'application/json' } }
   );
@@ -109,13 +110,14 @@ export function debitos() {
 
 export function creditos() {
   const payload = JSON.stringify({
+    cliente_id: randomClienteId(),
     valor: randomValorTransacao(),
     tipo: 'c',
     descricao: randomDescricao(),
   });
 
   const res = http.post(
-    `${baseUrl}/clientes/${randomClienteId()}/transacoes`,
+    `${baseUrl}/clientes/transacoes`,
     payload,
     { headers: { 'Content-Type': 'application/json' } }
   );
@@ -178,8 +180,8 @@ export function validacoes() {
 
     // Execute 2 transactions in sequence: a credit ("toma") then a debit ("devolve")
     res = http.post(
-      `${baseUrl}/clientes/${cliente.id}/transacoes`,
-      JSON.stringify({ valor: 1, tipo: 'c', descricao: 'toma' }),
+      `${baseUrl}/clientes/transacoes`,
+      JSON.stringify({ cliente_id: cliente.id, valor: 1, tipo: 'c', descricao: 'toma' }),
       { headers: { 'Content-Type': 'application/json' } }
     );
     check(res, {
@@ -188,8 +190,8 @@ export function validacoes() {
     });
 
     res = http.post(
-      `${baseUrl}/clientes/${cliente.id}/transacoes`,
-      JSON.stringify({ valor: 1, tipo: 'd', descricao: 'devolve' }),
+      `${baseUrl}/clientes/transacoes`,
+      JSON.stringify({ cliente_id: cliente.id, valor: 1, tipo: 'd', descricao: 'devolve' }),
       { headers: { 'Content-Type': 'application/json' } }
     );
     check(res, {
@@ -216,16 +218,16 @@ export function validacoes() {
 
     // Execute invalid requests; allow either 422 or 400 as valid responses
     const invalidRequests = [
-      { valor: 1.2, tipo: 'd', descricao: 'devolve', expectedStatus: 422 },
-      { valor: 1, tipo: 'x', descricao: 'devolve', expectedStatus: 422 },
-      { valor: 1, tipo: 'c', descricao: '123456789 e mais', expectedStatus: 422 },
-      { valor: 1, tipo: 'c', descricao: '', expectedStatus: 422 },
-      { valor: 1, tipo: 'c', descricao: null, expectedStatus: 422 },
+      { cliente_id: 6965, valor: 1.2, tipo: 'd', descricao: 'devolve', expectedStatus: 422 },
+      { cliente_id: 6966, valor: 1, tipo: 'x', descricao: 'devolve', expectedStatus: 422 },
+      { cliente_id: 6967, valor: 1, tipo: 'c', descricao: '123456789 e mais', expectedStatus: 422 },
+      { cliente_id: 6968, valor: 1, tipo: 'c', descricao: '', expectedStatus: 422 },
+      { cliente_id: 6969, valor: 1, tipo: 'c', descricao: null, expectedStatus: 422 },
     ];
 
     invalidRequests.forEach((req) => {
       res = http.post(
-        `${baseUrl}/clientes/${cliente.id}/transacoes`,
+        `${baseUrl}/clientes/transacoes`,
         JSON.stringify(req),
         { headers: { 'Content-Type': 'application/json' } }
       );
