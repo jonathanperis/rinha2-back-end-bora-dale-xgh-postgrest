@@ -2,15 +2,45 @@ name: 'rinha2-jonathanperis-xgh-bora-dale-rust'
 
 services:
 
-  db-postgrest:
+  webapi1-postgrest: &webapi1
+    image: postgrest/postgrest  
+    hostname: webapi1-postgrest
+    container_name: webapi-1-postgrest
+    depends_on:
+      db:
+        condition: service_healthy
+    volumes:
+      - ./postgrest.conf:/etc/postgrest.conf:ro
+    command: ["postgrest", "/etc/postgrest.conf"]
+    restart: always      
+    environment:
+      PGRST_CONFIG: "/etc/postgrest.conf"
+    ports:
+      - "5433:5433"  
+    deploy:
+      resources:
+        limits:
+          cpus: "0.4"
+          memory: "100MB"
+    networks:
+    - network-bora-dale-xgh
+
+  webapi2-postgrest:
+    <<: *webapi1
+    hostname: webapi2-postgrest
+    container_name: webapi-2-postgrest
+    ports:
+      - "5434:5433"  
+
+  db:
     image: postgres
     hostname: db
     container_name: db-rinha
     restart: always
-    depends_on:
-      - postgres-exporter      
+    # depends_on:
+    #   - postgres-exporter      
     volumes:
-      - db-rinha-data:/var/lib/postgresql/data
+      - db-rinha-data-postgrest:/var/lib/postgresql/data
       - ./docker-entrypoint-initdb.d:/docker-entrypoint-initdb.d
     environment:
       POSTGRES_USER: postgres
@@ -18,12 +48,16 @@ services:
       POSTGRES_DB: rinha
     ports:
       - "5432:5432"
-      - "5433:5433"
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      interval: 5s
+      timeout: 5s
+      retries: 5      
     deploy:
       resources:
         limits:
-          cpus: "1.3"
-          memory: "530MB"
+          cpus: "0.5"
+          memory: "330MB"
     command: postgres -c checkpoint_timeout=600 -c max_wal_size=4096 -c synchronous_commit=0 -c fsync=0 -c full_page_writes=0
     networks:
     - network-bora-dale-xgh
@@ -35,9 +69,10 @@ services:
     volumes:
       - ./nginx.conf:/etc/nginx/nginx.conf:ro
     depends_on: 
-      - db-postgrest
+      - webapi1-postgrest
+      - webapi2-postgrest
     ports:
-      - "9999:9999"
+      - "9999:9999"      
     deploy:
       resources:
         limits:
@@ -46,77 +81,77 @@ services:
     networks:
     - network-bora-dale-xgh
 
-  postgres-exporter:
-    image: prometheuscommunity/postgres-exporter 
-    container_name: postgres-exporter-rinha
-    ports:
-      - 9187:9187
-    environment:
-      DATA_SOURCE_NAME: "postgresql://postgres:postgres@db:5432/rinha?sslmode=disable"
-    networks:
-    - network-bora-dale-xgh
+  # postgres-exporter:
+  #   image: prometheuscommunity/postgres-exporter 
+  #   container_name: postgres-exporter-rinha
+  #   ports:
+  #     - 9187:9187
+  #   environment:
+  #     DATA_SOURCE_NAME: "postgresql://postgres:postgres@db:5432/rinha?sslmode=disable"
+  #   networks:
+  #   - network-bora-dale-xgh
 
-  grafana:
-    image: grafana/grafana
-    container_name: grafana-rinha
-    environment:
-      - GF_AUTH_ANONYMOUS_ORG_ROLE=Admin
-      - GF_AUTH_ANONYMOUS_ENABLED=true
-      - GF_AUTH_BASIC_ENABLED=false
-    ports:
-      - "3000:3000"
-    volumes:
-      - "./grafana/provisioning/:/etc/grafana/provisioning/"
-      - "./grafana/dashboards/:/var/lib/grafana/dashboards/"
-    networks:
-    - network-bora-dale-xgh
+  # grafana:
+  #   image: grafana/grafana
+  #   container_name: grafana-rinha
+  #   environment:
+  #     - GF_AUTH_ANONYMOUS_ORG_ROLE=Admin
+  #     - GF_AUTH_ANONYMOUS_ENABLED=true
+  #     - GF_AUTH_BASIC_ENABLED=false
+  #   ports:
+  #     - "3000:3000"
+  #   volumes:
+  #     - "./grafana/provisioning/:/etc/grafana/provisioning/"
+  #     - "./grafana/dashboards/:/var/lib/grafana/dashboards/"
+  #   networks:
+  #   - network-bora-dale-xgh
 
-  influxdb:
-    image: influxdb:2.0-alpine
-    hostname: influxdb
-    container_name: influxdb-rinha
-    ports:
-      - "8086:8086"
-    volumes:
-      - influxdb-rinha-data:/var/lib/influxdb2
-    environment:
-      - DOCKER_INFLUXDB_INIT_MODE=setup
-      - DOCKER_INFLUXDB_INIT_USERNAME=admin
-      - DOCKER_INFLUXDB_INIT_PASSWORD=VG3AfE!pz8x7
-      - DOCKER_INFLUXDB_INIT_ORG=rinha
-      - DOCKER_INFLUXDB_INIT_BUCKET=demo
-      - DOCKER_INFLUXDB_INIT_ADMIN_TOKEN=EEKpryGZk8pVDXmIuy484BKUxM5jOEDv7YNoeNZUbsNbpbPbP6kK_qY9Zsyw7zNnlZ7pHG16FYzNaqwLMBUz8g==
-    networks:
-      - network-bora-dale-xgh
+  # influxdb:
+  #   image: influxdb:2.0-alpine
+  #   hostname: influxdb
+  #   container_name: influxdb-rinha
+  #   ports:
+  #     - "8086:8086"
+  #   volumes:
+  #     - influxdb-rinha-data:/var/lib/influxdb2
+  #   environment:
+  #     - DOCKER_INFLUXDB_INIT_MODE=setup
+  #     - DOCKER_INFLUXDB_INIT_USERNAME=admin
+  #     - DOCKER_INFLUXDB_INIT_PASSWORD=VG3AfE!pz8x7
+  #     - DOCKER_INFLUXDB_INIT_ORG=rinha
+  #     - DOCKER_INFLUXDB_INIT_BUCKET=demo
+  #     - DOCKER_INFLUXDB_INIT_ADMIN_TOKEN=EEKpryGZk8pVDXmIuy484BKUxM5jOEDv7YNoeNZUbsNbpbPbP6kK_qY9Zsyw7zNnlZ7pHG16FYzNaqwLMBUz8g==
+  #   networks:
+  #     - network-bora-dale-xgh
 
-  k6:
-    # image: grafana/k6
-    build:
-      context: ./test/
-      dockerfile: ./stress-test/Dockerfile
-    container_name: k6
-    environment:
-      - BASE_URL=http://nginx:9999
-      - K6_WEB_DASHBOARD=true
-      - K6_INFLUXDB_ADDR=http://influxdb:8086
-      - K6_INFLUXDB_ORGANIZATION=rinha
-      - K6_INFLUXDB_BUCKET=demo
-      - K6_INFLUXDB_INSECURE=true
-      - K6_INFLUXDB_TOKEN=EEKpryGZk8pVDXmIuy484BKUxM5jOEDv7YNoeNZUbsNbpbPbP6kK_qY9Zsyw7zNnlZ7pHG16FYzNaqwLMBUz8g==      
-    volumes:
-      - "./test/stress-test:/app"
-    working_dir: /app
-    tty: true
-    stdin_open: true
-    depends_on:
-      - nginx
-      - grafana 
-      - influxdb      
-    entrypoint: ["/bin/sh", "/app/run-rinha-test.sh"]
-    ports:
-      - "5665:5665"
-    networks:
-      - network-bora-dale-xgh
+  # k6:
+  #   # image: grafana/k6
+  #   build:
+  #     context: ./test/
+  #     dockerfile: ./stress-test/Dockerfile
+  #   container_name: k6
+  #   environment:
+  #     - BASE_URL=http://nginx:9999
+  #     - K6_WEB_DASHBOARD=true
+  #     - K6_INFLUXDB_ADDR=http://influxdb:8086
+  #     - K6_INFLUXDB_ORGANIZATION=rinha
+  #     - K6_INFLUXDB_BUCKET=demo
+  #     - K6_INFLUXDB_INSECURE=true
+  #     - K6_INFLUXDB_TOKEN=EEKpryGZk8pVDXmIuy484BKUxM5jOEDv7YNoeNZUbsNbpbPbP6kK_qY9Zsyw7zNnlZ7pHG16FYzNaqwLMBUz8g==      
+  #   volumes:
+  #     - "./test/stress-test:/app"
+  #   working_dir: /app
+  #   tty: true
+  #   stdin_open: true
+  #   depends_on:
+  #     - nginx
+  #     - grafana 
+  #     - influxdb      
+  #   entrypoint: ["/bin/sh", "/app/run-rinha-test.sh"]
+  #   ports:
+  #     - "5665:5665"
+  #   networks:
+  #     - network-bora-dale-xgh
 
   # pgadmin:
   #   image: dpage/pgadmin4
@@ -142,7 +177,7 @@ networks:
     driver: bridge
 
 volumes:
-  db-rinha-data:
+  db-rinha-data-postgrest:
     driver: local
   prometheus-rinha-data:
     driver: local

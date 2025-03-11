@@ -12,8 +12,8 @@ RETURNS TABLE (
 ) AS $$
 BEGIN
   RETURN QUERY
-    SELECT total, limite, data_extrato, transacoes
-    FROM public.GetSaldoClienteById(p_cliente_id);
+    SELECT r.total, r.limite, r.data_extrato, r.transacoes
+    FROM public.GetSaldoClienteById(p_cliente_id) AS r;
 END;
 $$ LANGUAGE plpgsql STABLE;
 
