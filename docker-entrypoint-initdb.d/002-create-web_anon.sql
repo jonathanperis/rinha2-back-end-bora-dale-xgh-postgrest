@@ -18,3 +18,6 @@ ALTER DEFAULT PRIVILEGES IN SCHEMA public GRANT SELECT ON TABLES TO web_anon;
 GRANT USAGE ON SCHEMA api TO web_anon;
 GRANT SELECT ON ALL TABLES IN SCHEMA api TO web_anon;
 ALTER DEFAULT PRIVILEGES IN SCHEMA api GRANT SELECT ON TABLES TO web_anon;
+
+-- Grant execute permission on the RPC function to web_anon
+GRANT EXECUTE ON FUNCTION api.insert_transacao(integer, text, text, integer) TO web_anon;

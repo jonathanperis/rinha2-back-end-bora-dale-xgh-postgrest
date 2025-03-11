@@ -40,9 +40,9 @@ $$ LANGUAGE plpgsql STABLE;
 
 CREATE OR REPLACE FUNCTION api.insert_transacao(
     cliente_id integer,
-    valor integer,
+    descricao text,
     tipo text,
-    descricao text
+    valor integer
 )
 RETURNS jsonb AS $$
 DECLARE
@@ -62,7 +62,7 @@ BEGIN
     RAISE EXCEPTION 'Invalid valor. Must be greater than 0.';
   END IF;
   
-  -- Execute the original transaction logic.
+  -- Execute the inserted transaction logic.
   updated_saldo := public.InsertTransacao(cliente_id, valor, tipo, descricao);
   
   -- If the returned saldo is null, the client was not found or the update failed.
@@ -73,7 +73,7 @@ BEGIN
   -- Retrieve the client's limit.
   SELECT "Limite" INTO limite FROM public."Clientes" WHERE "Id" = cliente_id;
   
-  -- Return a JSON object with lowercase keys that match your load test expectation.
+  -- Return a JSON object with keys that match your load test expectation.
   RETURN jsonb_build_object(
     'id', cliente_id,
     'limite', limite,
