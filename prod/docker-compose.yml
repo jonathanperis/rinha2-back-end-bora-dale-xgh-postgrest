@@ -2,11 +2,40 @@ name: 'rinha2-jonathanperis-xgh-bora-dale-rust'
 
 services:
 
-  db-postgrest:
+  webapi1-postgrest: &webapi1
+    image: postgrest/postgrest  
+    hostname: webapi1-postgrest
+    container_name: webapi-1-postgrest
+    depends_on:
+      db:
+        condition: service_healthy
+    volumes:
+      - ./conf/postgrest.conf:/etc/postgrest.conf:ro
+    command: ["postgrest", "/etc/postgrest.conf"]
+    restart: always      
+    environment:
+      PGRST_CONFIG: "/etc/postgrest.conf"
+    network_mode: host
+    deploy:
+      resources:
+        limits:
+          cpus: "0.4"
+          memory: "100MB"
+    networks:
+    - network-bora-dale-xgh
+
+  webapi2-postgrest:
+    <<: *webapi1
+    hostname: webapi2-postgrest
+    container_name: webapi-2-postgrest
+
+  db:
     image: postgres
     hostname: db
     container_name: db-rinha
     restart: always
+    depends_on:
+      - postgres-exporter      
     volumes:
       - ./conf/db-init:/docker-entrypoint-initdb.d
     environment:
@@ -14,12 +43,19 @@ services:
       POSTGRES_PASSWORD: postgres
       POSTGRES_DB: rinha
     network_mode: host
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      interval: 5s
+      timeout: 5s
+      retries: 5      
     deploy:
       resources:
         limits:
-          cpus: "1.3"
-          memory: "530MB"
+          cpus: "0.5"
+          memory: "330MB"
     command: postgres -c checkpoint_timeout=600 -c max_wal_size=4096 -c synchronous_commit=0 -c fsync=0 -c full_page_writes=0
+    networks:
+    - network-bora-dale-xgh
 
   nginx:
     image: nginx
