@@ -16,7 +16,7 @@ services:
     environment:
       PGRST_CONFIG: "/etc/postgrest.conf"
     ports:
-      - "5433:5433"  
+      - "8081:8080"  
     deploy:
       resources:
         limits:
@@ -30,7 +30,7 @@ services:
     hostname: webapi2-postgrest
     container_name: webapi-2-postgrest
     ports:
-      - "5434:5433"  
+      - "8082:8080"  
 
   db:
     image: postgres
@@ -166,12 +166,7 @@ services:
   #     PGADMIN_LISTEN_PORT: 5050
   #   networks:
   #   - network-bora-dale-xgh
-
-# networks:
-#   k6:
-#   grafana:
-#   influxdb:
-
+  
 networks:
   network-bora-dale-xgh:
     driver: bridge
