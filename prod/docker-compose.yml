@@ -77,10 +77,10 @@ services:
     container_name: k6
     user: root
     environment:
+      - BASE_URL=http://nginx:9999
       - K6_WEB_DASHBOARD=true
       - K6_WEB_DASHBOARD_EXPORT=./reports/stress-test-report.html
     volumes:
-      - BASE_URL=http://nginx:9999
       - "./conf/stress-test:/app"
       - "./conf/stress-test/reports:/app/reports"
     working_dir: /app
