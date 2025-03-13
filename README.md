@@ -12,4 +12,4 @@ Versão PostgREST da [rinha de backend 2ª edição - 2024/Q1](https://github.co
 
 ```bash
 docker-compose up -d nginx
-```
+``` 
