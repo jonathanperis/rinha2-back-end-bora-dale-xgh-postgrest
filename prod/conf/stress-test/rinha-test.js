@@ -318,20 +318,3 @@ export function cliente_nao_encontrado() {
     'status 404': (r) => r.status === 404,
   });
 }
-
-// -----------------------------------------------------------------------------
-// Customize summary output to display only custom trend metrics.
-// -----------------------------------------------------------------------------
-export function handleSummary(data) {
-  const myTrends = {
-    debitos_duration: data.metrics.debitos_duration,
-    creditos_duration: data.metrics.creditos_duration,
-    extratos_duration: data.metrics.extratos_duration,
-    validacoes_duration: data.metrics.validacoes_duration,
-    cliente_nao_encontrado_duration: data.metrics.cliente_nao_encontrado_duration,
-  };
-
-  return {
-    stdout: JSON.stringify(myTrends, null, 2),
-  };
-}
