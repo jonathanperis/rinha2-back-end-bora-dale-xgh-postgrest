@@ -18,7 +18,7 @@ docker compose up -d nginx --build
 
 ### Implementações que elaborei em outras linguagens
 
-- [rinha2-back-end-bora-dale-xgh-dotnet](https://github.com/jonathanperis/rinha2-back-end-bora-dale-xgh-dotnet)
-- [rinha2-back-end-bora-dale-xgh-go](https://github.com/jonathanperis/rinha2-back-end-bora-dale-xgh-go)
-- [rinha2-back-end-bora-dale-xgh-rust](https://github.com/jonathanperis/rinha2-back-end-bora-dale-xgh-rust)
-- [rinha2-back-end-bora-dale-xgh-python](https://github.com/jonathanperis/rinha2-back-end-bora-dale-xgh-python)
+- [rinha2-back-end-dotnet](https://github.com/jonathanperis/rinha2-back-end-dotnet)
+- [rinha2-back-end-go](https://github.com/jonathanperis/rinha2-back-end-go)
+- [rinha2-back-end-rust](https://github.com/jonathanperis/rinha2-back-end-rust)
+- [rinha2-back-end-python](https://github.com/jonathanperis/rinha2-back-end-python)
