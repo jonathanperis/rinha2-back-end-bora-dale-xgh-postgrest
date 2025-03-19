@@ -4,8 +4,7 @@ services:
 
   webapi1-postgrest: &webapi1
     image: postgrest/postgrest  
-    hostname: webapi1-postgrest
-    container_name: webapi-1-postgrest
+    container_name: webapi-1-postgrest-rinha
     depends_on:
       db:
         condition: service_healthy
@@ -25,14 +24,12 @@ services:
 
   webapi2-postgrest:
     <<: *webapi1
-    hostname: webapi2-postgrest
-    container_name: webapi-2-postgrest
+    container_name: webapi-2-postgrest-rinha
     ports:
       - "1112:8080"  
 
   db:
     image: postgres
-    hostname: db
     container_name: db-rinha
     restart: always
     depends_on:
@@ -60,7 +57,6 @@ services:
 
   nginx:
     image: nginx
-    hostname: nginx
     container_name: nginx-rinha
     volumes:
       - ./nginx.conf:/etc/nginx/nginx.conf:ro
@@ -98,7 +94,6 @@ services:
 
   influxdb:
     image: influxdb:2.0-alpine
-    hostname: influxdb
     container_name: influxdb-rinha
     ports:
       - "8086:8086"
@@ -117,7 +112,7 @@ services:
     build:
       context: ./test/
       dockerfile: ./stress-test/Dockerfile
-    container_name: k6
+    container_name: k6-rinha
     environment:
       - BASE_URL=http://nginx:9999
       - K6_WEB_DASHBOARD=true
