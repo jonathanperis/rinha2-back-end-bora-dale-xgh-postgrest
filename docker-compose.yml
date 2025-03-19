@@ -1,4 +1,4 @@
-name: 'rinha2-jonathanperis-xgh-bora-dale-rust'
+name: 'rinha2-backend-jonathanperis-postgrest'
 
 services:
 
@@ -38,7 +38,7 @@ services:
     depends_on:
       - postgres-exporter      
     volumes:
-      - db-rinha-data-postgrest:/var/lib/postgresql/data
+      - db-data-postgrest:/var/lib/postgresql/data
       - ./docker-entrypoint-initdb.d:/docker-entrypoint-initdb.d
     environment:
       POSTGRES_USER: postgres
@@ -103,7 +103,7 @@ services:
     ports:
       - "8086:8086"
     volumes:
-      - influxdb-rinha-data:/var/lib/influxdb2
+      - influxdb-data:/var/lib/influxdb2
     environment:
       - DOCKER_INFLUXDB_INIT_MODE=setup
       - DOCKER_INFLUXDB_INIT_USERNAME=admin
@@ -152,9 +152,9 @@ services:
   #     PGADMIN_LISTEN_PORT: 5050
 
 volumes:
-  db-rinha-data-postgrest:
+  db-data-postgrest:
     driver: local
-  prometheus-rinha-data:
+  prometheus-data:
     driver: local
-  influxdb-rinha-data:
+  influxdb-data:
     driver: local
